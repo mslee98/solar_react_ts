@@ -6,8 +6,10 @@ import React from 'react';
 import loadable from '@loadable/component';
 import { Switch, Route, Redirect } from 'react-router-dom';
 
+const Main = loadable(() => import('@layouts/Main'));
 const Webgl = loadable(() => import('@pages/Webgl'));
-const Overlay = loadable(() => import('@pages/Overlay'))
+const MapPopup = loadable(() => import('@components/MapPopup'))
+
 
 const App = () => {
 
@@ -17,17 +19,17 @@ const App = () => {
          * url주소가 login이라면 Login 컴포넌트만 혹은 signup이라면 SignUp컴포넌트를 보여주며
          * url주소가 "/" 이런식으로 오면 Login 페이지를 올 수 있게끔 해줌
          */
-        // <Switch>
-        //     <Route path="/" component={Main}/>
-        //     {/* <Redirect exact path="/" to="/Login"/>
-        //     <Route path="/login" component={Login}/>
-        //     <Route path="/signup" component={SignUp}/> */}
-        // </Switch>
         <>
-            <Webgl/>
-            <Overlay/>
-            
+            <Switch>
+                <Redirect exact path="/" to="/solar" />
+                {/* <Route path="/solar" component={Main} /> */}
+            </Switch>
+
+            <MapPopup />
+            <Webgl />
         </>
+
+
     )
 }
 
