@@ -13,20 +13,55 @@ const MapPopup = loadable(() => import('@components/MapPopup'))
 export const ON_MAP_CLICK = 'ON_MAP_CLICK';
 
 export const WebGLContext = createContext({
-    dispatch: (state: any):any => {}
+    imgUrl: '',
+    weatherData: {
+        base: '',
+        cod: 0,
+        clouds: {
+            all: 0
+        },
+        coord: {
+            lat: 0,
+            lon: 0,
+        },
+        main: {
+            feels_like: 0,
+            humidity: 0,
+            pressure: 0,
+            temp: 0,
+            temp_max: 0,
+            temp_min: 0,
+        },
+        name: '',
+        visibility: 0,
+        weather: [],
+        wind: {
+            speed: 0,
+            deg: 0,
+        }
+    },
+    dispatch: ({}) => {}
     // dispatch: (action: {type: string; payload/?: any}) => {},
 });
 
 // useReducer에 사용 될 초기 데이터
 const initialState = {
-    weatherData2: {},
+    imgUrl: '',
+    weatherData: {},
 }
 
 const reducer = (state: any, action: any):any => {
 
+    console.log("3333",state);
+
     switch(action.type) {
         case ON_MAP_CLICK : {
-            return null;
+            console.log("action", action)
+            return {
+                ...state,
+                imgUrl: action.imgUrl,
+                weatherData: action.weatherData,
+            }
         }
     }
 }
@@ -36,21 +71,21 @@ const App = () => {
     //지도 초기 위도/경도 설정
     const [latLng, setLatlng] = useState([]);
 
-    const [imgUrl, setImgUrl] = useState<string>();
-    const [weatherData, setWeatherData] = useState<{} | undefined>({});
+    // const [imgUrl, setImgUrl] = useState<string>();
+    // const [weatherData, setWeatherData] = useState<{} | undefined>({});
 
     const [state, dispatch] = useReducer(reducer, initialState);
-    const { weatherData2 } = state;
+    const { imgUrl, weatherData } = state;
 
     const value = useMemo( () => ({
-        weatherData2, dispatch
-    }), [])
+        imgUrl, weatherData, dispatch
+    }), [imgUrl, weatherData])
 
-    const onMapClick = useCallback((imgData: string, weatherData?: {}) => {
-        // textureRef.current = imgData;
-        setImgUrl(imgData);
-        setWeatherData(weatherData);
-    }, [latLng])
+    // const onMapClick = useCallback((imgData: string, weatherData?: {}) => {
+    //     // textureRef.current = imgData;
+    //     // setImgUrl(imgData);
+    //     // setWeatherData(weatherData);
+    // }, [latLng])
 
     return (
         <>
@@ -61,8 +96,9 @@ const App = () => {
 
             {/* Context API */}
             <WebGLContext.Provider value={value}>
-                <MapPopup onMapClick={onMapClick} latLng={[37,127]} />
-                <Webgl imgUrl={imgUrl} weatherData={weatherData}/>
+                <MapPopup latLng={[37,127]} />
+                {/* <Webgl imgUrl={imgUrl} weatherData={weatherData}/> */}
+                <Webgl />
             </WebGLContext.Provider>
         </>
 

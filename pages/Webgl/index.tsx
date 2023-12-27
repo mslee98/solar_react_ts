@@ -1,26 +1,47 @@
-import React, { VFC, Suspense, useState, useRef, useEffect, FC, MutableRefObject, useCallback, useTransition } from 'react';
+import React, { VFC, Suspense, useState, useRef, useEffect, FC, MutableRefObject, useCallback, useTransition, useContext } from 'react';
 
 /** --force 강제 설치 함 */
 import { Canvas, useFrame, useLoader } from '@react-three/fiber';
 import { Cloud, Clouds, Environment, OrbitControls, Sky, useGLTF, useHelper, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { WebGLContext } from '@layouts/App';
 // import image from '@pages/Webgl/test_dem.jpeg';
 
-interface WebglProps {
-    imgUrl?: string;
-    weatherData? : {}
-}
+// interface WebglProps {
+//     imgUrl?: string;
+//     weatherData? : {}
+// }
 
-const Webgl: FC<WebglProps> = ({imgUrl, weatherData}) => {
-    
+const Webgl: VFC = () => {
+    const { imgUrl, dispatch, weatherData} = useContext(WebGLContext);
+
     //원래 초기값 이미지 데이터 불러와서 사용하려고 함
     const [textureLoaded, setTextureLoaded] = useState(false)
     const textureRef = useRef<THREE.Texture | undefined>();
     
-    // textureRef.current = useLoader(THREE.TextureLoader,'https://cdn.jsdelivr.net/gh/Sean-Bradley/React-Three-Fiber-Boilerplate@displacementMap/public/img/worldColour.5400x2700.jpg')
-
     const textureLoader = new THREE.TextureLoader();
+    
+    // const [weather, setWeather] = useState('');
+    let weather;
+    // if(Object.keys(weatherData).length > 0) {
+        // }
+        
+    if (Object.keys(weatherData).length > 0) {
+        /**
+         * clear shy - 맑은 하늘
+         * few clouds - 구름의 거의 없음
+         * scattered clouds - 흩어져있는 구름
+         * broken clouds - 부서진 구름
+         * shower rain - 샤워 비
+         * rain -비
+         * thunderstorm - 뇌우
+         * snow - 눈
+         * mist - 안개
+        */
+        weather = (weatherData.weather[0]['description']);
+    }
+
 
     if(imgUrl) {
         textureLoader.load(imgUrl,(texture) => {
@@ -35,6 +56,7 @@ const Webgl: FC<WebglProps> = ({imgUrl, weatherData}) => {
     }
 
 
+    
 
     // const sunRef = useRef<THREE.Vector3 | undefined>();
 
@@ -52,17 +74,45 @@ const Webgl: FC<WebglProps> = ({imgUrl, weatherData}) => {
 
     return (
         <>  
+
+            {
+                Object.keys(weatherData).length > 0 ?
+                <div style={{
+                    width: '300px',
+                    height: '350px',
+                    zIndex: 15,
+                    background: 'lightgray',
+                    position: 'absolute',
+                    left: '0px',
+                }}>
+                    <ul style={{listStyleType: 'none'}}>
+                        <li>base: {weatherData.base}</li>
+                        <li>clouds: {weatherData.clouds.all}</li>
+                        <li>coord: {weatherData.coord.lat} / {weatherData.coord.lon}</li>
+                        <li>feels_like: {weatherData.main.feels_like}</li>
+                        <li>humidity: {weatherData.main.humidity}</li>
+                        <li>pressure: {weatherData.main.pressure}</li>
+                        <li>temp: {weatherData.main.temp}</li>
+                        <li>temp_max: {weatherData.main.temp_max}</li>
+                        <li>temp_min: {weatherData.main.temp_min}</li>
+                        <li>name: {weatherData.name}</li>
+                        <li>main/description: {weatherData.weather[0]['main']} / {weatherData.weather[0]['description']}</li>
+                        {/* {weatherData.weather.map(({id, main, descroption, icon}) => {
+                            return (
+                                <li>날씨/설명:{main} / {descroption}</li>
+                            )
+                        })} */}
+                        <li>visibility: {weatherData.visibility}</li>
+                        <li>wind(속도/각): {weatherData.wind.speed} / {weatherData.wind.deg}</li>
+                    </ul>
+                </div>
+                : null
+            }
             <Canvas shadows dpr={[1,2]} camera={{ position: [-1, 1.5, 2], fov: 25 }}>
                 {/* <spotLight position={[-4, 4, -4]} angle={0.06} penumbra={1} castShadow shadow-mapSize={[2048, 2048]} /> */}
                 <ambientLight intensity={0.2} color={'white'} />
                 <directionalLight color="gray" position={[5, 50, 5]} castShadow/>
                 <SunLight />
-
-
-                {/* <mesh position={[0,50,0]}>
-                    <boxGeometry args={[20, 20, 20]} />
-                    <meshPhongMaterial />
-                </mesh> */}
 
 
                 {/* 클릭 이벤트에 따른 지형 선택 */}
