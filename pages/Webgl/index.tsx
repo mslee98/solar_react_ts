@@ -23,24 +23,30 @@ const Webgl: VFC = () => {
     const textureLoader = new THREE.TextureLoader();
     
     // const [weather, setWeather] = useState('');
-    let weather;
-    // if(Object.keys(weatherData).length > 0) {
-        // }
-        
-    if (Object.keys(weatherData).length > 0) {
-        /**
-         * clear shy - 맑은 하늘
-         * few clouds - 구름의 거의 없음
-         * scattered clouds - 흩어져있는 구름
-         * broken clouds - 부서진 구름
-         * shower rain - 샤워 비
-         * rain -비
-         * thunderstorm - 뇌우
-         * snow - 눈
-         * mist - 안개
-        */
-        weather = (weatherData.weather[0]['description']);
-    }
+    let weather, clouds;
+
+    console.log("@@@",weatherData)
+
+    let [cloudsCnt, setCloudsCnt] = useState(10);
+
+    // if (Object.keys(weatherData).length > 0) {
+    //     /**
+    //      * clear shy - 맑은 하늘
+    //      * few clouds - 구름의 거의 없음
+    //      * scattered clouds - 흩어져있는 구름
+    //      * broken clouds - 부서진 구름
+    //      * shower rain - 샤워 비
+    //      * rain -비
+    //      * thunderstorm - 뇌우
+    //      * snow - 눈
+    //      * mist - 안개
+    //     */
+
+    //     //이거 왜 state로 관리하려니깐.. loop Error가 나는데 다시 살펴봐야 하긴할듯
+    //     setCloudsCnt(weatherData.clouds.all);
+    //     console.log(cloudsCnt)
+    //     weather = (weatherData.weather[0]['description']);
+    // }
 
 
     if(imgUrl) {
@@ -55,8 +61,6 @@ const Webgl: VFC = () => {
         })
     }
 
-
-    
 
     // const sunRef = useRef<THREE.Vector3 | undefined>();
 
@@ -108,12 +112,15 @@ const Webgl: VFC = () => {
                 </div>
                 : null
             }
-            <Canvas shadows dpr={[1,2]} camera={{ position: [-1, 1.5, 2], fov: 25 }}>
+            <Canvas shadows dpr={[1,2]} camera={{ position: [-1, 1.5, 2], fov: 25, far: 2500 }}>
                 {/* <spotLight position={[-4, 4, -4]} angle={0.06} penumbra={1} castShadow shadow-mapSize={[2048, 2048]} /> */}
                 <ambientLight intensity={0.2} color={'white'} />
                 <directionalLight color="gray" position={[5, 50, 5]} castShadow/>
                 <SunLight />
 
+                <line>
+
+                </line>
 
                 {/* 클릭 이벤트에 따른 지형 선택 */}
                 {   textureLoaded &&
@@ -138,13 +145,13 @@ const Webgl: VFC = () => {
                             displacementScale={3}
                         />
                     </mesh>
-                    <mesh rotation={[-Math.PI/2, 0, 0]} receiveShadow>
-                        <planeGeometry args={[1000,1000,50,50]} />
+                    {/* <mesh rotation={[-Math.PI/2, 0, 0]} receiveShadow>
+                        <planeGeometry args={[512,512,50,50]} />
                         <meshPhongMaterial
                             color={'brown'}
                             wireframe={true}
                         />
-                    </mesh>
+                    </mesh> */}
                     </>
                 }
 
@@ -156,11 +163,13 @@ const Webgl: VFC = () => {
                     mieDirectionalG={1}
                 /> */}
                  <Suspense fallback="..loading">
-                    <Cloud receiveShadow castShadow position={[-4, 15, 2]} speed={0.4} opacity={0.6} color={'#ffffff'}/>
+                    <CloudsComponent weather={weather} clouds={cloudsCnt}/>
+
+                    {/* <Cloud receiveShadow castShadow position={[-4, 15, 2]} speed={0.4} opacity={0.6} color={'#ffffff'}/>
                     <Cloud receiveShadow castShadow position={[-8, 15, 4]} speed={0.4} opacity={0.6} />
                     <Cloud receiveShadow castShadow position={[-12, 15, 2]} speed={0.4} opacity={0.6} />
                     <Cloud receiveShadow castShadow position={[-16, 15, -2]} speed={0.4} opacity={0.6} />
-                    <Cloud receiveShadow castShadow position={[-20, 15, 6]} speed={0.4} opacity={0.6} />
+                    <Cloud receiveShadow castShadow position={[-20, 15, 6]} speed={0.4} opacity={0.6} /> */}
 
                     {/* <Model/> */}
                     {/* 동기식 입력에 응답하는 동안 구성 요소가 중단되어 발생하는 오류임
@@ -168,16 +177,15 @@ const Webgl: VFC = () => {
                     {/* <Environment preset="forest" background blur={0.5}/> */}
                     
                  </Suspense>
+                 <fog attach={"fog"} args={["#da6953", 0, 500]} />
                 <OrbitControls/>
             </Canvas>
         </>
     );
 }
 
-
 const SunLight = () => {
-    const [sunPosition, setSunPosition] = useState(new THREE.Vector3(0, 10, 0));
-
+    const [sunPosition, setSunPosition] = useState(new THREE.Vector3(0, 125, 0));
     // useFrame(({clock}) => {
     //     const elapsedTime = clock.getElapsedTime();
     //     const radius = 500; // 원의 반지름
@@ -204,6 +212,28 @@ const SunLight = () => {
             </mesh>
         </>
     )
+}
+
+interface CloudsProps {
+    weather?: string,
+    clouds?: number,
+}
+
+const CloudsComponent: FC<CloudsProps> = ({weather, clouds}) => {
+
+    let [cloudsCnt, setCloudsCnt] = useState(clouds? new Array(clouds).fill(0) : new Array(Math.floor(Math.random() * 10) + 10).fill(0));
+    // let [cloudsCnt, setCloudsCnt] = useState(clouds? clouds : Math.floor(Math.random() * 10) + 10);
+    console.log(cloudsCnt)
+
+    //타일 크기는 -256 ~ 256까지
+    return (
+        <>
+            {cloudsCnt.map((v) => {
+                <Cloud receiveShadow castShadow position={[Math.floor((Math.random() * 250)- 250), 40, Math.floor((Math.random() * 250)- 250)]} speed={0.4} opacity={0.1} />
+            })}
+        </>
+    )
+
 }
 
 export default Webgl;
